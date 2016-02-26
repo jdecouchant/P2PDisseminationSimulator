@@ -9,7 +9,7 @@ int Statistics::getNumWrites() {
 
 void Statistics::openOutputFile(string fileName) {
         outRcvdUpdates = fopen(fileName.c_str(), "w");
-        fprintf(outRcvdUpdates, "RoundId (ContentId, ProportionReceived)\n");
+        fprintf(outRcvdUpdates, "RoundId \t(ContentId, ProportionReceived)\n");
 }
 
 void Statistics::closeOutputFile() {
@@ -31,14 +31,14 @@ void Statistics::writeProportionsToFile(int roundId) {
                 return;
         }
         
-        fprintf(outRcvdUpdates, "%d", roundId);
+        fprintf(outRcvdUpdates, "%03d", roundId);
         for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
                 double avgReceived = 0;
                 for (int nodeId = 0; nodeId < NUM_NODES; nodeId++) {
                         avgReceived += ((double) numRcvdUpdsPerRound[nodeId][contentId]) / ((double) NUM_NODES);
                 }
                 avgReceived = (avgReceived / ((double) NUM_UPDS_PER_ROUND)) * ((double) 100);
-                fprintf(outRcvdUpdates, " (%d, %.2lf) ", contentId, avgReceived);        
+                fprintf(outRcvdUpdates, "\t(%d, %6.2lf) ", contentId, avgReceived);        
         }
         fprintf(outRcvdUpdates, "\n");
 }

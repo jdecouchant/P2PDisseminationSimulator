@@ -3,6 +3,7 @@
 
 #include "simulator.hh"
 #include <stdio.h>
+#include <string>
 
 using namespace std;
 
