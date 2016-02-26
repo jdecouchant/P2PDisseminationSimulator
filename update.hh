@@ -4,14 +4,16 @@
 class Update {
 	int roundId; // Creation of update
 	int id;
+        int contentId;
 
 public:
-	Update(int roundId, int id);
+	Update(int roundId, int id, int contentId);
 	int getRoundId() const;
 	int getId() const;
+        int getContentId() const;
 
 	bool operator<(Update other) const {
-        	return id < other.id;
+        	return id < other.id || (id == other.id && contentId < other.contentId);
     	}
 };
 

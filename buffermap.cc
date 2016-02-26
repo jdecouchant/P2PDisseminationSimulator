@@ -4,6 +4,11 @@
 #include "buffermap.hh"
 #include "simulator.hh"
 
+void Buffermap::init(int nodeId, int contentId) {
+        this->nodeId = nodeId;
+        this->contentId = contentId;        
+}
+
 void Buffermap::insertSet(int roundId, set<Update> &setUpdate) {
 	set<Update>::iterator iter;
 
@@ -32,7 +37,7 @@ void Buffermap::getNewUpdates(vector<Update> &v) {
 	}
 }
 
-void Buffermap::endOfRound(int roundId, bool print) {
+int Buffermap::endOfRound(int roundId, bool print) {
 	// Update the set of updates that has to be forwarded
 	map<Update, int>::iterator iter;
 	for (iter = newUpdates.begin(); iter != newUpdates.end(); ) {
@@ -55,8 +60,10 @@ void Buffermap::endOfRound(int roundId, bool print) {
 		}
 	}
 
-	if (print)
-		cout << "\t # deleted updates : " << nbDeletedUpdates << endl;
+	//if (print)
+	//	cout << "\t(" << nodeId << "," << contentId << ") : deleted " << nbDeletedUpdates  << " updates" << endl;
+
+        return nbDeletedUpdates;
 }
 
 

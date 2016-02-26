@@ -8,15 +8,17 @@
 
 class Node {
 	int id;
-	Buffermap bm;
+	Buffermap bm[NUM_CONTENTS];
 	int roundId;
+        int rcvdUpdatesPerContentId[NUM_CONTENTS];
 
 public:
-	void init(int id);	
+	void init(int id);
 	void incRoundId();
-	void pushUpdates(class Push *push);
+	void pushUpdates(class Push *push, int contentId);
 	void rcvInUpdates(set<Update> &inUpdates);
 	void endOfRound();
+        int getRcvdUpdatesPerContentId(int contentId);
 };
 
 #endif

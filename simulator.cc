@@ -13,10 +13,10 @@ using namespace std;
 //#define TRACE
 
 Simulator::Simulator() {
-	nodes = new Node[NB_NODES];
-	inUpdates = new set<Update>[NB_NODES];
-	inUpdatesLocks = new mutex[NB_NODES];
-	for (int i=0; i<NB_NODES; i++) {
+	nodes = new Node[NUM_NODES];
+	inUpdates = new set<Update>[NUM_NODES];
+	inUpdatesLocks = new mutex[NUM_NODES];
+	for (int i=0; i<NUM_NODES; i++) {
 		nodes[i].init(i);
 	}
 
@@ -26,16 +26,22 @@ Simulator::Simulator() {
 		td[i].inUpdatesLocks = inUpdatesLocks;
 		td[i].inUpdates = inUpdates;
 	}
+	
+	stats = new Statistics();
+	stats->openOutputFile("outputRcvd.txt");
 }
 
 Simulator::~Simulator() {
 	delete[] nodes;	
 	delete[] inUpdates;
 	delete[] inUpdatesLocks;
+        
+        stats->closeOutputFile();
+        delete stats;
 }
 
 void Simulator::printInUpdates() {
-	for (int i = 0; i < NB_NODES; i++) {
+	for (int i = 0; i < NUM_NODES; i++) {
 		cout << "\t" << i << " " << inUpdates[i].size();
 		set<Update>::iterator iter;
 		for (iter = inUpdates[i].begin(); iter!=inUpdates[i].end(); ++iter) {
@@ -47,20 +53,22 @@ void Simulator::printInUpdates() {
 
 void Simulator::sourceSendNewUpdates(int roundId) {
 	srand(roundId);
-	int firstUpdateId = (NB_UPD_PER_ROUND * roundId) + 1; 
+	int firstUpdateId = (NUM_UPDS_PER_ROUND * roundId) + 1; 
 	set<int> destNodes;
 	int destNode;
-	for (int updateId = firstUpdateId; updateId < firstUpdateId + NB_UPD_PER_ROUND; updateId++) {
-		for (int destId = 0; destId < FANOUT; destId++) {
-			destNode = rand() % NB_NODES;
-			while (destNodes.find(destNode) != destNodes.end())
-				destNode = rand() % NB_NODES;
-			destNodes.insert(destNode);
-			Update update(roundId, updateId);
-			inUpdates[destNode].insert(update);
-		}
-		destNodes.clear();
-	}
+        for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
+                for (int updateId = firstUpdateId; updateId < firstUpdateId + NUM_UPDS_PER_ROUND; updateId++) {
+                        for (int destId = 0; destId < FANOUT; destId++) {
+                                destNode = rand() % NUM_NODES;
+                                while (destNodes.find(destNode) != destNodes.end())
+                                        destNode = rand() % NUM_NODES;
+                                destNodes.insert(destNode);
+                                Update update(roundId, updateId, contentId);
+                                inUpdates[destNode].insert(update);
+                        }
+                        destNodes.clear();
+                }
+        }
 }
 
 void *threadPushUpdates(void *threadarg) {
@@ -73,19 +81,21 @@ void *threadPushUpdates(void *threadarg) {
 	set<Update> *inUpdates = my_data->inUpdates;
 
 	Push push;
-	for (int i = tid; i < NB_NODES; i += NUM_THREADS) {
-		nodes[i].pushUpdates(&push);
+	for (int nodeId = tid; nodeId < NUM_NODES; nodeId += NUM_THREADS) {
+                for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
+                        nodes[nodeId].pushUpdates(&push, contentId);
 
-		for (int destId = 0; destId < FANOUT; destId++) {
-			int nodeId = push.getNodesId(destId);
-			inUpdatesLocks[nodeId].lock();
-			for (int updPos = 0; updPos < push.getUpdatesSize(); updPos++) {
-				inUpdates[nodeId].insert(push.getUpdates(updPos));
-			}
-			inUpdatesLocks[nodeId].unlock();
-		}
+                        for (int destId = 0; destId < FANOUT; destId++) {
+                                int nodeId = push.getNodesId(destId);
+                                inUpdatesLocks[nodeId].lock();
+                                for (int updPos = 0; updPos < push.getUpdatesSize(); updPos++) {
+                                        inUpdates[nodeId].insert(push.getUpdates(updPos));
+                                }
+                                inUpdatesLocks[nodeId].unlock();
+                        }
 
-		push.clear();
+                        push.clear();
+                }
 	}
 
 
@@ -109,10 +119,10 @@ void *threadEndOfRound(void *threadarg) {
 	Node *nodes = my_data->nodes;
 	set<Update> *inUpdates = my_data->inUpdates;
 
-	for (int i = tid; i < NB_NODES; i += NUM_THREADS) {
+	for (int i = tid; i < NUM_NODES; i += NUM_THREADS) {
 		nodes[i].endOfRound();
 		nodes[i].rcvInUpdates(inUpdates[i]);	
-		inUpdates[i].clear();	
+		inUpdates[i].clear();
 		nodes[i].incRoundId();
 	}
 
@@ -120,21 +130,33 @@ void *threadEndOfRound(void *threadarg) {
 }
 
 
-void Simulator::peersEndOfRound() {
-	for (int i = 0; i < NUM_THREADS; i++) {
-		pthread_create(&threads[i], NULL, threadEndOfRound, (void *)&td[i]);
+void Simulator::peersEndOfRound(int roundId) {
+	for (int tid = 0; tid < NUM_THREADS; tid++) {
+		pthread_create(&threads[tid], NULL, threadEndOfRound, (void *)&td[tid]);
 	}
 
-	for (int i = 0; i < NUM_THREADS; i++) {
-		pthread_join(threads[i], NULL);
+	for (int tid = 0; tid < NUM_THREADS; tid++) {
+		pthread_join(threads[tid], NULL);
 	}
+	
+	for (int nodeId = 0; nodeId < NUM_NODES; nodeId++) {
+                for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
+                        int numRcvdUpdates = nodes[nodeId].getRcvdUpdatesPerContentId(contentId);
+                        stats->insertNumRcvdUpdates(nodeId, contentId, numRcvdUpdates);
+                }
+        }
+        
+        stats->writeProportionsToFile(roundId);
+        stats->clearRoundProportions();
 }
 
 
 int main() {
 	Simulator sim;
+        
+        
 
-	for (int roundId = 0; roundId < NB_ROUNDS; roundId++) {
+	for (int roundId = 0; roundId < NUM_ROUNDS; roundId++) {
 		cout << "Round " << roundId << endl;
 
 #ifdef TRACE 
@@ -150,7 +172,7 @@ int main() {
 #ifdef TRACE 
 		cout << "\tEnd of round" << endl;
 #endif	
-		sim.peersEndOfRound();
+		sim.peersEndOfRound(roundId);
 
 	}
 

@@ -1,15 +1,17 @@
 #ifndef simulator_hh
 #define simulator_hh
 
-#define 	NB_NODES			1000
-#define 	NB_ROUNDS			100	
+#define 	NUM_NODES			1000
+#define 	NUM_ROUNDS			100	
 #define		RTE				10
-#define 	NB_UPD_PER_ROUND		40
-#define 	FANOUT				4
+#define 	NUM_UPDS_PER_ROUND		10
+#define 	FANOUT				3
 #define 	DURATION_PROPOSE		1
+#define         NUM_CONTENTS                    4
 
 #define 	NUM_THREADS			4
 
+#include "statistics.hh"
 #include "node.hh"
 #include "update.hh"
 #include <mutex>
@@ -27,13 +29,11 @@ class Simulator {
 	
 	mutex *inUpdatesLocks;
 	struct thread_data td[NUM_THREADS];
-
+        pthread_t threads[NUM_THREADS];
+        
+        class Statistics *stats;
+        
 public: 
-	bool *donePush;
-	bool *doneReceive;
-	bool shouldExit;
-	pthread_t threads[NUM_THREADS];
-
 	Simulator();
 	~Simulator();
 
@@ -42,7 +42,7 @@ public:
 	void printInUpdates();
 	void sourceSendNewUpdates(int roundId);
 	void peersPushUpdates();
-	void peersEndOfRound();
+	void peersEndOfRound(int roundId);
 };
 
 

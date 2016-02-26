@@ -9,6 +9,9 @@ using namespace std;
 void Node::init(int id) {
 	this->id = id;
 	this->roundId = 0;
+        for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
+                bm[contentId].init(id, contentId);
+        }
 }
 	
 void Node::incRoundId() {
@@ -16,16 +19,16 @@ void Node::incRoundId() {
 }
 
 
-void Node::pushUpdates(Push *push) {
+void Node::pushUpdates(Push *push, int contentId) {
 	set<int> destNodes;
 	for (int destId = 0; destId < FANOUT; destId++) {
-		int destNode = rand() % NB_NODES;
+		int destNode = rand() % NUM_NODES;
 		while (destNodes.find(destNode) != destNodes.end() || destNode == id)
-			destNode = rand() % NB_NODES;
+			destNode = rand() % NUM_NODES;
 		push->insertNodeId(destId, destNode);
 	}
 	vector<Update> v;
-	bm.getNewUpdates(v);	
+	bm[contentId].getNewUpdates(v);
 	vector<Update>::iterator iter;
 	for (iter=v.begin(); iter!=v.end(); ++iter) {
 		if (iter->getRoundId() >= roundId - RTE) {
@@ -41,9 +44,25 @@ void Node::pushUpdates(Push *push) {
 void Node::rcvInUpdates(set<Update> &inUpdates) {
 	//if (id == 0)
 	//	cout << "\tReceive " << inUpdates.size() << endl;
-	bm.insertSet(roundId, inUpdates);
+        set<Update> updatesPerContent[NUM_CONTENTS];
+        set<Update>::iterator it;
+        for (it = inUpdates.begin(); it != inUpdates.end(); it++) {
+                Update update = *it;
+                int contentId = update.getContentId();
+                updatesPerContent[contentId].insert(update);
+        }
+        for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {  
+                bm[contentId].insertSet(roundId, updatesPerContent[contentId]);
+        }
 }
 	
 void Node::endOfRound() { 
-	bm.endOfRound(roundId, id < 5);
+        for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
+                int numRcvdUpdates = bm[contentId].endOfRound(roundId, id < 10);
+                rcvdUpdatesPerContentId[contentId] = numRcvdUpdates;
+        }
+}
+
+int Node::getRcvdUpdatesPerContentId(int contentId) {
+        return rcvdUpdatesPerContentId[contentId];
 }
