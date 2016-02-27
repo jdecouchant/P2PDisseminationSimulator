@@ -8,11 +8,17 @@
 using namespace std;
 
 class Statistics {
+        int NUM_NODES;
+        int NUM_CONTENTS;
+        int NUM_UPDS_PER_ROUND;
+        
         FILE *outRcvdUpdates;
         int numWrites;
-        int numRcvdUpdsPerRound[NUM_NODES][NUM_CONTENTS];
+        int **numRcvdUpdsPerRound;
 
 public:
+        Statistics(int NUM_NODES, int NUM_CONTENTS, int NUM_UPDS_PER_ROUND);
+        ~Statistics();
         int getNumWrites();
         void openOutputFile(string fileName);
         void closeOutputFile();

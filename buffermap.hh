@@ -9,13 +9,17 @@
 using namespace std;
 
 class Buffermap {
+        int DURATION_PROPOSE;
+        int RTE;
+        
         int nodeId;
         int contentId;
 	map<int, set<Update> > updatesPerRound; // creationRoundId -> updatesId
 	map<Update, int> newUpdates;
 	
 public:
-        void init(int nodeId, int contentId);
+        Buffermap();
+        void init(int DURATION_PROPOSE, int RTE, int nodeId, int contentId);
 	void insertSet(int roundId, set<Update> &setUpdate);
 	void getNewUpdates(vector<Update> &v);
 	int endOfRound(int roundId, bool print);  

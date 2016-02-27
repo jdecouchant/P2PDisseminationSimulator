@@ -6,12 +6,27 @@
 
 using namespace std;
 
-void Node::init(int id) {
-	this->id = id;
-	this->roundId = 0;
+Node::Node() {}
+
+void Node::init(int id, int FANOUT, int NUM_CONTENTS, int NUM_NODES, 
+           int RTE, int DURATION_PROPOSE) {
+        this->id = id;
+        this->roundId = 0;
+        this->FANOUT = FANOUT;
+        this->NUM_CONTENTS = NUM_CONTENTS;
+        this->NUM_NODES = NUM_NODES;
+        this->RTE = RTE;
+        this->DURATION_PROPOSE = DURATION_PROPOSE;
+        bm = new Buffermap[NUM_CONTENTS];
         for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
-                bm[contentId].init(id, contentId);
+                bm[contentId].init(DURATION_PROPOSE, RTE, id, contentId);
         }
+        rcvdUpdatesPerContentId = new int[NUM_CONTENTS];
+}
+        
+Node::~Node() {
+        delete[] bm;
+        delete[] rcvdUpdatesPerContentId;
 }
 	
 void Node::incRoundId() {
@@ -20,6 +35,7 @@ void Node::incRoundId() {
 
 
 void Node::pushUpdates(Push *push, int contentId) {
+
 	set<int> destNodes;
 	for (int destId = 0; destId < FANOUT; destId++) {
 		int destNode = rand() % NUM_NODES;
@@ -27,6 +43,7 @@ void Node::pushUpdates(Push *push, int contentId) {
 			destNode = rand() % NUM_NODES;
 		push->insertNodeId(destId, destNode);
 	}
+
 	vector<Update> v;
 	bm[contentId].getNewUpdates(v);
 	vector<Update>::iterator iter;

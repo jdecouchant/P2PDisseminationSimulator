@@ -8,10 +8,13 @@
 using namespace std;
 
 class Push {
-	int nodesId[FANOUT];
+        int FANOUT;
+	int *nodesId;
 	vector<Update> updates;
 
 public:
+        Push(int FANOUT);
+        ~Push();
 	void clear();
 	int getNodesId(int i);
 	void insertNodeId(int i, int destNode);

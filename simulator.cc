@@ -12,32 +12,54 @@ using namespace std;
 
 //#define TRACE
 
-Simulator::Simulator() {
-	nodes = new Node[NUM_NODES];
-	inUpdates = new set<Update>[NUM_NODES];
-	inUpdatesLocks = new mutex[NUM_NODES];
-	for (int i=0; i<NUM_NODES; i++) {
-		nodes[i].init(i);
-	}
+Simulator::Simulator(int NUM_NODES, int NUM_ROUNDS, int RTE, int NUM_UPDS_PER_ROUND, 
+                  int FANOUT, int DURATION_PROPOSE, int NUM_CONTENTS, int NUM_THREADS) {
+        
+        this->NUM_NODES = NUM_NODES; 
+        this->NUM_ROUNDS = NUM_ROUNDS;
+        this->RTE = RTE;
+        this->NUM_UPDS_PER_ROUND = NUM_UPDS_PER_ROUND;
+        this->FANOUT = FANOUT;
+        this->DURATION_PROPOSE = DURATION_PROPOSE;
+        this->NUM_CONTENTS = NUM_CONTENTS;
+        this->NUM_THREADS = NUM_THREADS;       
 
-	for (int i = 0; i < NUM_THREADS; i++) {
-		td[i].tid = i;
-		td[i].nodes = nodes;
-		td[i].inUpdatesLocks = inUpdatesLocks;
-		td[i].inUpdates = inUpdates;
-	}
-	
-	stats = new Statistics();
-	stats->openOutputFile("outputRcvd.txt");
+        nodes = new Node[NUM_NODES];
+        for (int nodeId = 0; nodeId < NUM_NODES; nodeId++) {
+                nodes[nodeId].init(nodeId, FANOUT, NUM_CONTENTS, NUM_NODES, 
+           RTE, DURATION_PROPOSE);
+        }
+
+        inUpdates = new set<Update>[NUM_NODES];
+        inUpdatesLocks = new mutex[NUM_NODES];
+
+        td = new struct thread_data[NUM_THREADS];
+        threads = new pthread_t[NUM_THREADS];
+        for (int i = 0; i < NUM_THREADS; i++) {
+                td[i].tid = i;
+                td[i].nodes = nodes;
+                td[i].inUpdatesLocks = inUpdatesLocks;
+                td[i].inUpdates = inUpdates;
+                td[i].FANOUT = FANOUT;
+                td[i].NUM_NODES = NUM_NODES;
+                td[i].NUM_CONTENTS = NUM_CONTENTS;
+                td[i].NUM_THREADS = NUM_THREADS;
+        }
+        
+        stats = new Statistics(NUM_NODES, NUM_CONTENTS, NUM_UPDS_PER_ROUND);
+        stats->openOutputFile("outputRcvd.txt");
 }
 
 Simulator::~Simulator() {
-	delete[] nodes;	
+	delete[] nodes;
 	delete[] inUpdates;
 	delete[] inUpdatesLocks;
         
         stats->closeOutputFile();
         delete stats;
+        
+        delete[] td;
+        delete[] threads;
 }
 
 void Simulator::printInUpdates() {
@@ -79,12 +101,16 @@ void *threadPushUpdates(void *threadarg) {
 	Node *nodes = my_data->nodes;
 	mutex *inUpdatesLocks = my_data->inUpdatesLocks;
 	set<Update> *inUpdates = my_data->inUpdates;
-
-	Push push;
-	for (int nodeId = tid; nodeId < NUM_NODES; nodeId += NUM_THREADS) {
+        int FANOUT = my_data->FANOUT;
+        int NUM_NODES = my_data->NUM_NODES;
+        int NUM_CONTENTS = my_data->NUM_CONTENTS;
+        int NUM_THREADS = my_data->NUM_THREADS;
+        
+	Push push(FANOUT);
+        for (int nodeId = tid; nodeId < NUM_NODES; nodeId += NUM_THREADS) {
                 for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
                         nodes[nodeId].pushUpdates(&push, contentId);
-
+                        
                         for (int destId = 0; destId < FANOUT; destId++) {
                                 int nodeId = push.getNodesId(destId);
                                 inUpdatesLocks[nodeId].lock();
@@ -98,7 +124,6 @@ void *threadPushUpdates(void *threadarg) {
                 }
 	}
 
-
 	pthread_exit(NULL);
 }
 
@@ -106,7 +131,6 @@ void Simulator::peersPushUpdates() {
 	for (int i = 0; i < NUM_THREADS; i++) {
 		pthread_create(&threads[i], NULL, threadPushUpdates, (void *)&td[i]);
 	}
-
 	for (int i = 0; i < NUM_THREADS; i++) {
 		pthread_join(threads[i], NULL);
 	}
@@ -118,6 +142,8 @@ void *threadEndOfRound(void *threadarg) {
 	int tid = my_data->tid;
 	Node *nodes = my_data->nodes;
 	set<Update> *inUpdates = my_data->inUpdates;
+        int NUM_NODES = my_data->NUM_NODES;
+        int NUM_THREADS = my_data->NUM_THREADS;
 
 	for (int i = tid; i < NUM_NODES; i += NUM_THREADS) {
 		nodes[i].endOfRound();

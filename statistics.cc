@@ -3,6 +3,23 @@
  
 using namespace std;
  
+Statistics::Statistics(int NUM_NODES, int NUM_CONTENTS, int NUM_UPDS_PER_ROUND) {
+        this->NUM_NODES = NUM_NODES;
+        this->NUM_CONTENTS = NUM_CONTENTS;
+        this->NUM_UPDS_PER_ROUND = NUM_UPDS_PER_ROUND;
+        numRcvdUpdsPerRound = new int*[NUM_NODES];
+        for (int i = 0; i < NUM_NODES; i++) {
+                numRcvdUpdsPerRound[i] = new int[NUM_CONTENTS];
+        }
+}
+
+Statistics::~Statistics() {
+        for (int i = 0; i < NUM_NODES; i++) {
+                delete[] numRcvdUpdsPerRound[i];
+        }
+        delete[] numRcvdUpdsPerRound;        
+}
+        
 int Statistics::getNumWrites() {
         return numWrites;
 }

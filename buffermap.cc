@@ -4,7 +4,11 @@
 #include "buffermap.hh"
 #include "simulator.hh"
 
-void Buffermap::init(int nodeId, int contentId) {
+Buffermap::Buffermap() {}
+
+void Buffermap::init(int DURATION_PROPOSE, int RTE, int nodeId, int contentId) {
+        this->DURATION_PROPOSE = DURATION_PROPOSE;
+        this->RTE = RTE;
         this->nodeId = nodeId;
         this->contentId = contentId;        
 }
