@@ -109,8 +109,11 @@ void *threadPushUpdates(void *threadarg) {
 	Push push(FANOUT);
         for (int nodeId = tid; nodeId < NUM_NODES; nodeId += NUM_THREADS) {
                 for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
-                        nodes[nodeId].pushUpdates(&push, contentId);
-                        
+			if (NUM_CONTENTS == 1) {
+				nodes[nodeId].pushUpdates(&push, contentId);
+			} else {
+				nodes[nodeId].pushUpdatesAsymmetrically(&push, contentId);
+			}
                         for (int destId = 0; destId < FANOUT; destId++) {
                                 int nodeId = push.getNodesId(destId);
                                 inUpdatesLocks[nodeId].lock();

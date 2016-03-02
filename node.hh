@@ -20,15 +20,17 @@ class Node {
 	int roundId;
 	int *rcvdUpdatesPerContentId;
 
+	int getContentIdFromNodeId(int nodeId);
 	set<int> selectNodesFromSameContent(int numNodes);
 	set<int> selectNodesFromDifferentContent(int numNodes);
 
 public:
 	Node();
-	void init(int id, int contentId, int FANOUT, int NUM_CONTENTS, int NUM_NODES, int RTE, int DURATION_PROPOSE);
+	void init(int id, int FANOUT, int NUM_CONTENTS, int NUM_NODES, int RTE, int DURATION_PROPOSE);
 	~Node();        
 	void incRoundId();
 	void pushUpdates(class Push *push, int contentId);
+	void pushUpdatesAsymmetrically(class Push *push, int contentId);
 	void rcvInUpdates(set<Update> &inUpdates);
 	void endOfRound();
 	int getRcvdUpdatesPerContentId(int contentId);
