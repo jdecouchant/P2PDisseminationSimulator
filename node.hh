@@ -7,24 +7,31 @@
 #include <set>
 
 class Node {
-        int FANOUT;
-        int NUM_CONTENTS;
-        int NUM_NODES;
-        int RTE;
-        int DURATION_PROPOSE;
 	int id;
-        Buffermap *bm;
+	int selfContentId; // Id of the content of interest of the node
+
+	int FANOUT;
+	int NUM_CONTENTS;
+	int NUM_NODES;
+	int RTE;
+	int DURATION_PROPOSE;
+
+	Buffermap *bm;
 	int roundId;
-        int *rcvdUpdatesPerContentId;
+	int *rcvdUpdatesPerContentId;
+
+	set<int> selectNodesFromSameContent(int numNodes);
+	set<int> selectNodesFromDifferentContent(int numNodes);
+
 public:
-        Node();
-        void init(int id, int FANOUT, int NUM_CONTENTS, int NUM_NODES, int RTE, int DURATION_PROPOSE);
-        ~Node();        
+	Node();
+	void init(int id, int contentId, int FANOUT, int NUM_CONTENTS, int NUM_NODES, int RTE, int DURATION_PROPOSE);
+	~Node();        
 	void incRoundId();
 	void pushUpdates(class Push *push, int contentId);
 	void rcvInUpdates(set<Update> &inUpdates);
 	void endOfRound();
-        int getRcvdUpdatesPerContentId(int contentId);
+	int getRcvdUpdatesPerContentId(int contentId);
 };
 
 #endif
