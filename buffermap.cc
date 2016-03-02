@@ -64,8 +64,8 @@ int Buffermap::endOfRound(int roundId, bool print) {
 		}
 	}
 
-	//if (print)
-	//	cout << "\t(" << nodeId << "," << contentId << ") : deleted " << nbDeletedUpdates  << " updates" << endl;
+	if (print)
+		cout << "\t(" << nodeId << "," << contentId << ") : deleted " << nbDeletedUpdates  << " updates" << endl;
 
         return nbDeletedUpdates;
 }

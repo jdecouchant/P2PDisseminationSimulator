@@ -7,6 +7,7 @@
 #include "simulator.hh"
 
 #include <pthread.h>
+#include "assert.h"
 
 using namespace std;
 
@@ -73,6 +74,23 @@ void Simulator::printInUpdates() {
 	}
 }
 
+int Simulator::getRandNodeIdFromContent(int contentId) {
+        int numNodesPerContent = NUM_NODES / NUM_CONTENTS;
+        int firstNodeId = contentId * numNodesPerContent;
+        return firstNodeId + (rand() % numNodesPerContent);
+}
+
+int Simulator::getContentIdFromNodeId(int nodeId, int NUM_NODES, int NUM_CONTENTS) {
+        int contentId = 0;
+        int curContentMax = (NUM_NODES / NUM_CONTENTS);
+        while (nodeId >= curContentMax) {
+            curContentMax += (NUM_NODES / NUM_CONTENTS);
+            contentId++;
+        }
+        assert(contentId >= 0 && contentId < NUM_CONTENTS);
+        return contentId;
+}
+
 void Simulator::sourceSendNewUpdates(int roundId) {
 	srand(roundId);
 	int firstUpdateId = (NUM_UPDS_PER_ROUND * roundId) + 1; 
@@ -81,9 +99,10 @@ void Simulator::sourceSendNewUpdates(int roundId) {
         for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
                 for (int updateId = firstUpdateId; updateId < firstUpdateId + NUM_UPDS_PER_ROUND; updateId++) {
                         for (int destId = 0; destId < FANOUT; destId++) {
-                                destNode = rand() % NUM_NODES;
-                                while (destNodes.find(destNode) != destNodes.end())
-                                        destNode = rand() % NUM_NODES;
+                                destNode = getRandNodeIdFromContent(contentId);
+                                while (destNodes.find(destNode) != destNodes.end()) {
+                                        destNode = getRandNodeIdFromContent(contentId);
+                                }
                                 destNodes.insert(destNode);
                                 Update update(roundId, updateId, contentId);
                                 inUpdates[destNode].insert(update);

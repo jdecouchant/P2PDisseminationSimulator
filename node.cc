@@ -18,7 +18,7 @@ void Node::init(int id, int FANOUT, int NUM_CONTENTS, int NUM_NODES,
 	this->NUM_NODES = NUM_NODES;
 	this->RTE = RTE;
 	this->DURATION_PROPOSE = DURATION_PROPOSE;
-	selfContentId = getContentIdFromNodeId(id);
+	selfContentId = Simulator::getContentIdFromNodeId(id, NUM_NODES, NUM_CONTENTS);
 	bm = new Buffermap[NUM_CONTENTS];
 	for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
 		bm[contentId].init(DURATION_PROPOSE, RTE, id, contentId);
@@ -35,17 +35,6 @@ void Node::incRoundId() {
 	++roundId;
 }
 
-int Node::getContentIdFromNodeId(int nodeId) {
-    	int contentId = 0;
-	int curContentMax = (NUM_NODES / NUM_CONTENTS);
-	while (nodeId >= curContentMax) {
-	    curContentMax += (NUM_NODES / NUM_CONTENTS);
-	    contentId++;
-	}
-	assert(contentId >= 0 && contentId < NUM_CONTENTS);
-	return contentId;
-}
-
 set<int> Node::selectNodesFromSameContent(int numNodes) {
 	int numNodesPerContent = NUM_NODES / NUM_CONTENTS;
 	set<int> destNodes;
@@ -55,7 +44,7 @@ set<int> Node::selectNodesFromSameContent(int numNodes) {
 			destNode = selfContentId * numNodesPerContent + rand() % numNodesPerContent;
 		}
 		assert(destNode < NUM_NODES && destNode >= 0);
-		assert(getContentIdFromNodeId(id) == getContentIdFromNodeId(destNode));
+		assert(Simulator::getContentIdFromNodeId(id, NUM_NODES, NUM_CONTENTS) == Simulator::getContentIdFromNodeId(destNode, NUM_NODES, NUM_CONTENTS));
 		destNodes.insert(destNode);
 	}
 	return destNodes;
@@ -71,7 +60,8 @@ set<int> Node::selectNodesFromDifferentContent(int numNodes) {
 			destNode = rand() % NUM_NODES;
 		}
 		assert(destNode < NUM_NODES && destNode >= 0);
-		assert(getContentIdFromNodeId(id) != getContentIdFromNodeId(destNode));
+		assert(Simulator::getContentIdFromNodeId(id, NUM_NODES, NUM_CONTENTS) 
+                != Simulator::getContentIdFromNodeId(destNode, NUM_NODES, NUM_CONTENTS));
 		destNodes.insert(destNode);
 	}
 	return destNodes;
@@ -103,10 +93,10 @@ void Node::pushUpdatesAsymmetrically(class Push *push, int contentId) {
 	set<int> destNodesSameContent, destNodesOtherContent;
 	if (contentId == selfContentId) {
  		destNodesOtherContent = selectNodesFromDifferentContent(FANOUT / 3);
-		destNodesSameContent = selectNodesFromSameContent(FANOUT - (FANOUT/3));
+		destNodesSameContent = selectNodesFromSameContent(FANOUT - FANOUT/3);
 	} else {
 		destNodesSameContent = selectNodesFromSameContent(FANOUT / 3);
-		destNodesOtherContent = selectNodesFromDifferentContent(FANOUT - (FANOUT / 3));
+		destNodesOtherContent = selectNodesFromDifferentContent(FANOUT - FANOUT/3);
 	}
 	
 	int destId = 0;
@@ -123,7 +113,12 @@ void Node::pushUpdatesAsymmetrically(class Push *push, int contentId) {
 	vector<Update>::iterator iter;
 	for (iter=v.begin(); iter!=v.end(); ++iter) {
 		if (iter->getRoundId() >= roundId - RTE) {
-			push->insertUpdate(*iter);
+                        // Other updates are less often transmitted
+                        if (contentId != selfContentId) {
+                                if (rand() % 100 < 40)
+                                        push->insertUpdate(*iter);
+                        } else 
+                                push->insertUpdate(*iter);
 		}
 	}
 }
@@ -135,8 +130,8 @@ void Node::rcvInUpdates(set<Update> &inUpdates) {
 	set<Update>::iterator it;
 	for (it = inUpdates.begin(); it != inUpdates.end(); it++) {
 		Update update = *it;
-		int contentId = update.getContentId();
-		updatesPerContent[contentId].insert(update);
+		int updateContentId = update.getContentId();
+		updatesPerContent[updateContentId].insert(update);
 	}
 	for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {  
 		bm[contentId].insertSet(roundId, updatesPerContent[contentId]);
@@ -145,7 +140,8 @@ void Node::rcvInUpdates(set<Update> &inUpdates) {
 
 void Node::endOfRound() { 
 	for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
-		int numRcvdUpdates = bm[contentId].endOfRound(roundId, id < 10);
+		int numRcvdUpdates = 
+		bm[contentId].endOfRound(roundId, false);
 		rcvdUpdatesPerContentId[contentId] = numRcvdUpdates;
 	}
 }

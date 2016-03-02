@@ -20,7 +20,6 @@ class Node {
 	int roundId;
 	int *rcvdUpdatesPerContentId;
 
-	int getContentIdFromNodeId(int nodeId);
 	set<int> selectNodesFromSameContent(int numNodes);
 	set<int> selectNodesFromDifferentContent(int numNodes);
 

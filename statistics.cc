@@ -1,5 +1,7 @@
 #include "statistics.hh"  
 #include <stdio.h>
+#include "assert.h"
+#include "simulator.hh"
  
 using namespace std;
  
@@ -26,7 +28,7 @@ int Statistics::getNumWrites() {
 
 void Statistics::openOutputFile(string fileName) {
         outRcvdUpdates = fopen(fileName.c_str(), "w");
-        fprintf(outRcvdUpdates, "RoundId \t(ContentId, ProportionReceived)\n");
+        fprintf(outRcvdUpdates, "RoundId -> (ContentId, \tProportionOfContentReceivedPerContentId)\n\n");
 }
 
 void Statistics::closeOutputFile() {
@@ -34,6 +36,11 @@ void Statistics::closeOutputFile() {
 }
 
 void Statistics::clearRoundProportions() {
+        for (int nodeId = 0; nodeId < NUM_NODES; nodeId++) {
+                for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
+                        numRcvdUpdsPerRound[nodeId][contentId] = 0;
+                }
+        }
         numWrites = 0;
 }
 
@@ -43,24 +50,43 @@ void Statistics::insertNumRcvdUpdates(int nodeId, int contentId, int numReceived
 }
 
 void Statistics::writeProportionsToFile(int roundId) {
-        if (numWrites != NUM_NODES * NUM_CONTENTS) {
-                printf("Incorrect number of writes!! \n");
-                return;
-        }
+        assert(numWrites == NUM_NODES * NUM_CONTENTS);
+        
+        int numNodesPerContent = NUM_NODES / NUM_CONTENTS;
         
         fprintf(outRcvdUpdates, "%03d", roundId);
-        for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
-                double avgReceived = 0.0;
-		double numFullReceptions = 0.0;
-                for (int nodeId = 0; nodeId < NUM_NODES; nodeId++) {
-                        avgReceived += ((double) numRcvdUpdsPerRound[nodeId][contentId]) / ((double) NUM_NODES);
-			if (numRcvdUpdsPerRound[nodeId][contentId] == NUM_UPDS_PER_ROUND) {
-			    numFullReceptions++;
-			}
-		}
-                avgReceived = (avgReceived / ((double) NUM_UPDS_PER_ROUND)) * ((double) 100);
-		numFullReceptions = (100.0 * numFullReceptions) / ((double) NUM_NODES);
-                fprintf(outRcvdUpdates, "\t(%d, %6.2lf, %6.2lf) ", contentId, avgReceived, numFullReceptions);        
+        double avgReceivedPerContentId[NUM_CONTENTS][NUM_CONTENTS];
+        for (int i = 0; i < NUM_CONTENTS; i++) {
+                for (int j = 0; j < NUM_CONTENTS; j++) {
+                        avgReceivedPerContentId[i][j] = 0.0;
+                }
+        }
+
+        for (int nodeId = 0; nodeId < NUM_NODES; nodeId++) {
+                int nodeContentId = Simulator::getContentIdFromNodeId(nodeId, NUM_NODES, NUM_CONTENTS);
+                for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
+                        avgReceivedPerContentId[nodeContentId][contentId] += 
+                        ((double) numRcvdUpdsPerRound[nodeId][contentId]) / ((double) NUM_UPDS_PER_ROUND);
+                }
+        }
+        
+        for (int i = 0; i < NUM_CONTENTS; i++) {
+                for (int j = 0; j < NUM_CONTENTS; j++) {
+                        avgReceivedPerContentId[i][j] = 
+                        (100.0 * avgReceivedPerContentId[i][j]) /  ((double) numNodesPerContent);
+                }
+        }
+        
+        for (int i = 0; i < NUM_CONTENTS; i++) {
+                fprintf(outRcvdUpdates, "\t%d -> (", i);
+                for (int j = 0; j < NUM_CONTENTS; j++) {
+                        fprintf(outRcvdUpdates, "%5.1lf", avgReceivedPerContentId[i][j]);
+                        if (j+1 < NUM_CONTENTS) {
+                                fprintf(outRcvdUpdates, ", ");
+                        } else {
+                                fprintf(outRcvdUpdates, ")");
+                        }
+                }
         }
         fprintf(outRcvdUpdates, "\n");
 }
