@@ -50,12 +50,17 @@ void Statistics::writeProportionsToFile(int roundId) {
         
         fprintf(outRcvdUpdates, "%03d", roundId);
         for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
-                double avgReceived = 0;
+                double avgReceived = 0.0;
+		double numFullReceptions = 0.0;
                 for (int nodeId = 0; nodeId < NUM_NODES; nodeId++) {
                         avgReceived += ((double) numRcvdUpdsPerRound[nodeId][contentId]) / ((double) NUM_NODES);
-                }
+			if (numRcvdUpdsPerRound[nodeId][contentId] == NUM_UPDS_PER_ROUND) {
+			    numFullReceptions++;
+			}
+		}
                 avgReceived = (avgReceived / ((double) NUM_UPDS_PER_ROUND)) * ((double) 100);
-                fprintf(outRcvdUpdates, "\t(%d, %6.2lf) ", contentId, avgReceived);        
+		numFullReceptions = (100.0 * numFullReceptions) / ((double) NUM_NODES);
+                fprintf(outRcvdUpdates, "\t(%d, %6.2lf, %6.2lf) ", contentId, avgReceived, numFullReceptions);        
         }
         fprintf(outRcvdUpdates, "\n");
 }
