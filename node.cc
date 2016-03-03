@@ -10,7 +10,7 @@ using namespace std;
 Node::Node() {} // To allow the creation of vector of nodes
 
 void Node::init(int id, int FANOUT, int NUM_CONTENTS, int NUM_NODES, 
-		int RTE, int DURATION_PROPOSE) {
+		int RTE, int DURATION_PROPOSE, int PROBAITOI, int PROBAITOJ) {
 	this->id = id;
 	this->roundId = 0;
 	this->FANOUT = FANOUT;
@@ -18,6 +18,8 @@ void Node::init(int id, int FANOUT, int NUM_CONTENTS, int NUM_NODES,
 	this->NUM_NODES = NUM_NODES;
 	this->RTE = RTE;
 	this->DURATION_PROPOSE = DURATION_PROPOSE;
+	this->PROBAITOI = PROBAITOI;
+	this->PROBAITOJ = PROBAITOJ;
 	selfContentId = Simulator::getContentIdFromNodeId(id, NUM_NODES, NUM_CONTENTS);
 	bm = new Buffermap[NUM_CONTENTS];
 	for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
@@ -34,6 +36,8 @@ Node::~Node() {
 void Node::incRoundId() {
 	++roundId;
 }
+
+// TODO define a function that takes numNodes from a given contentId
 
 set<int> Node::selectNodesFromSameContent(int numNodes) {
 	int numNodesPerContent = NUM_NODES / NUM_CONTENTS;
@@ -87,6 +91,11 @@ void Node::pushUpdates(Push *push, int contentId) {
 		}
 	}
 }
+
+// TODO: use PROBAITOI, PROBAITOJ
+// if rand() < pitoi then send content i to a majority of i nodes
+// else send content i to a majority of j nodes
+// Use sets of nodes
 
 void Node::pushUpdatesAsymmetrically(class Push *push, int contentId) {
   

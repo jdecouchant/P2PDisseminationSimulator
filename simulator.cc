@@ -14,7 +14,8 @@ using namespace std;
 //#define TRACE
 
 Simulator::Simulator(int NUM_NODES, int NUM_ROUNDS, int RTE, int NUM_UPDS_PER_ROUND, 
-                  int FANOUT, int DURATION_PROPOSE, int NUM_CONTENTS, int NUM_THREADS) {
+                  int FANOUT, int DURATION_PROPOSE, int NUM_CONTENTS, int NUM_THREADS, 
+		  int PROBAITOI, int PROBAITOJ) {
         
         this->NUM_NODES = NUM_NODES; 
         this->NUM_ROUNDS = NUM_ROUNDS;
@@ -24,11 +25,14 @@ Simulator::Simulator(int NUM_NODES, int NUM_ROUNDS, int RTE, int NUM_UPDS_PER_RO
         this->DURATION_PROPOSE = DURATION_PROPOSE;
         this->NUM_CONTENTS = NUM_CONTENTS;
         this->NUM_THREADS = NUM_THREADS;       
-
+	this->PROBAITOI = PROBAITOI;
+	this->PROBAITOJ = PROBAITOJ;
+	
+	
         nodes = new Node[NUM_NODES];
         for (int nodeId = 0; nodeId < NUM_NODES; nodeId++) {
                 nodes[nodeId].init(nodeId, FANOUT, NUM_CONTENTS, NUM_NODES, 
-           RTE, DURATION_PROPOSE);
+           RTE, DURATION_PROPOSE, PROBAITOI, PROBAITOJ);
         }
 
         inUpdates = new set<Update>[NUM_NODES];

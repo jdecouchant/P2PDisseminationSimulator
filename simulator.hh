@@ -1,16 +1,6 @@
 #ifndef simulator_hh
 #define simulator_hh
 
-// #define 	NUM_NODES			1000
-// #define 	NUM_ROUNDS			100	
-// #define		RTE				10
-// #define 	NUM_UPDS_PER_ROUND		10
-// #define 	FANOUT				3
-// #define 	DURATION_PROPOSE		1
-// #define         NUM_CONTENTS                    4
-// 
-// #define 	NUM_THREADS			4
-
 #include "statistics.hh"
 #include "node.hh"
 #include "update.hh"
@@ -36,7 +26,9 @@ class Simulator {
         int FANOUT;
         int DURATION_PROPOSE;
         int NUM_CONTENTS;
-        int NUM_THREADS;        
+        int NUM_THREADS; 
+	int PROBAITOI;
+	int PROBAITOJ;
         
 	class Node *nodes;	
 	set<Update> *inUpdates; // Messages that are being transmitted during one round
@@ -51,7 +43,9 @@ class Simulator {
         
 public: 
 	Simulator(int NUM_NODES, int NUM_ROUNDS, int RTE, int NUM_UPDS_PER_ROUND, 
-                  int FANOUT, int DURATION_PROPOSE, int NUM_CONTENTS, int NUM_THREADS);
+                  int FANOUT, int DURATION_PROPOSE, int NUM_CONTENTS, int NUM_THREADS,
+		  int PROBAITOI, int PROBAITOJ
+ 		);
 	~Simulator();
 
         static int getContentIdFromNodeId(int nodeId, int NUM_NODES, int NUM_CONTENTS);

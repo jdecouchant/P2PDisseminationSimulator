@@ -4,6 +4,7 @@
 #include "buffermap.hh"
 #include "push.hh"
 #include "update.hh"
+#include "simulator.hh"
 #include <set>
 
 class Node {
@@ -15,6 +16,8 @@ class Node {
 	int NUM_NODES;
 	int RTE;
 	int DURATION_PROPOSE;
+	int PROBAITOI;
+	int PROBAITOJ;
 
 	Buffermap *bm;
 	int roundId;
@@ -25,7 +28,9 @@ class Node {
 
 public:
 	Node();
-	void init(int id, int FANOUT, int NUM_CONTENTS, int NUM_NODES, int RTE, int DURATION_PROPOSE);
+	void init(int id, int FANOUT, int NUM_CONTENTS, int NUM_NODES, int RTE, int DURATION_PROPOSE,
+	  int PROBAITOI, int PROBAITOJ
+	);
 	~Node();        
 	void incRoundId();
 	void pushUpdates(class Push *push, int contentId);
