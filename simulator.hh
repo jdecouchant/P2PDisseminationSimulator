@@ -28,7 +28,6 @@ class Simulator {
         int NUM_CONTENTS;
         int NUM_THREADS; 
 	int PROBAITOI;
-	int PROBAITOJ;
         
 	class Node *nodes;	
 	set<Update> *inUpdates; // Messages that are being transmitted during one round
@@ -44,7 +43,7 @@ class Simulator {
 public: 
 	Simulator(int NUM_NODES, int NUM_ROUNDS, int RTE, int NUM_UPDS_PER_ROUND, 
                   int FANOUT, int DURATION_PROPOSE, int NUM_CONTENTS, int NUM_THREADS,
-		  int PROBAITOI, int PROBAITOJ
+		  int PROBAITOI
  		);
 	~Simulator();
 

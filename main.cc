@@ -6,9 +6,10 @@
 
 int main(int argc, char* argv[]) {
         
-        if (argc < 11) {
+        if (argc != 10) {
+		cout << argc << " arguments provided instead of 10!" << endl;
                 cout << "Usage: NUM_NODES NUM_ROUNDS RTE NUM_UPDS_PER_ROUND"
-                << " FANOUT DURATION_PROPOSE NUM_CONTENTS NUM_THREADS PROBAITOI PROBAITOJ" << endl; 
+                << " FANOUT DURATION_PROPOSE NUM_CONTENTS NUM_THREADS PROBAITOI" << endl; 
                 return 1;                
         }
         
@@ -22,7 +23,6 @@ int main(int argc, char* argv[]) {
         int NUM_CONTENTS = atoi(argv[7]);
         int NUM_THREADS = atoi(argv[8]);  
 	int PROBAITOI = atoi(argv[9]);
-	int PROBAITOJ = atoi(argv[10]);
         
         cout << "Running with: NUM_NODES=" << NUM_NODES
         << ", NUM_ROUNDS=" << NUM_ROUNDS
@@ -33,13 +33,12 @@ int main(int argc, char* argv[]) {
         << ", NUM_CONTENTS=" << NUM_CONTENTS
         << ", NUM_THREADS=" << NUM_THREADS 
         << ", PROBAITOI=" << PROBAITOI
-        << ", PROBAITOJ=" << PROBAITOJ
         << endl;
         
         
         Simulator sim(NUM_NODES, NUM_ROUNDS, RTE, NUM_UPDS_PER_ROUND, 
                       FANOUT, DURATION_PROPOSE, NUM_CONTENTS, NUM_THREADS, 
-		      PROBAITOI, PROBAITOJ
+		      PROBAITOI
  		    );
 
         for (int roundId = 0; roundId < NUM_ROUNDS; roundId++) {

@@ -15,7 +15,7 @@ using namespace std;
 
 Simulator::Simulator(int NUM_NODES, int NUM_ROUNDS, int RTE, int NUM_UPDS_PER_ROUND, 
                   int FANOUT, int DURATION_PROPOSE, int NUM_CONTENTS, int NUM_THREADS, 
-		  int PROBAITOI, int PROBAITOJ) {
+		  int PROBAITOI) {
         
         this->NUM_NODES = NUM_NODES; 
         this->NUM_ROUNDS = NUM_ROUNDS;
@@ -26,13 +26,12 @@ Simulator::Simulator(int NUM_NODES, int NUM_ROUNDS, int RTE, int NUM_UPDS_PER_RO
         this->NUM_CONTENTS = NUM_CONTENTS;
         this->NUM_THREADS = NUM_THREADS;       
 	this->PROBAITOI = PROBAITOI;
-	this->PROBAITOJ = PROBAITOJ;
 	
 	
         nodes = new Node[NUM_NODES];
         for (int nodeId = 0; nodeId < NUM_NODES; nodeId++) {
                 nodes[nodeId].init(nodeId, FANOUT, NUM_CONTENTS, NUM_NODES, 
-           RTE, DURATION_PROPOSE, PROBAITOI, PROBAITOJ);
+           RTE, DURATION_PROPOSE, PROBAITOI);
         }
 
         inUpdates = new set<Update>[NUM_NODES];
@@ -84,6 +83,7 @@ int Simulator::getRandNodeIdFromContent(int contentId) {
         return firstNodeId + (rand() % numNodesPerContent);
 }
 
+// TODO not working correctly if NUM_CONTENTS does not divide NUM_NODES
 int Simulator::getContentIdFromNodeId(int nodeId, int NUM_NODES, int NUM_CONTENTS) {
         int contentId = 0;
         int curContentMax = (NUM_NODES / NUM_CONTENTS);
@@ -91,7 +91,7 @@ int Simulator::getContentIdFromNodeId(int nodeId, int NUM_NODES, int NUM_CONTENT
             curContentMax += (NUM_NODES / NUM_CONTENTS);
             contentId++;
         }
-        assert(contentId >= 0 && contentId < NUM_CONTENTS);
+        assert(0 <= contentId && contentId < NUM_CONTENTS);
         return contentId;
 }
 
@@ -129,22 +129,32 @@ void *threadPushUpdates(void *threadarg) {
         int NUM_CONTENTS = my_data->NUM_CONTENTS;
         int NUM_THREADS = my_data->NUM_THREADS;
         
-	Push push(FANOUT);
+	Push push(FANOUT, NUM_CONTENTS);
         for (int nodeId = tid; nodeId < NUM_NODES; nodeId += NUM_THREADS) {
                 for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
 			if (NUM_CONTENTS == 1) {
 				nodes[nodeId].pushUpdates(&push, contentId);
+			        for (int destId = 0; destId < FANOUT; destId++) {
+					int nodeId = push.getNodesId(destId);
+					inUpdatesLocks[nodeId].lock();
+					for (int updPos = 0; updPos < push.getUpdatesSize(); updPos++) {
+						inUpdates[nodeId].insert(push.getUpdates(updPos));
+					}
+					inUpdatesLocks[nodeId].unlock();
+				}
 			} else {
 				nodes[nodeId].pushUpdatesAsymmetrically(&push, contentId);
+				for (int j = 0; j < NUM_CONTENTS; j++) {
+					for (int nodePos = 0; nodePos < FANOUT; nodePos++) {
+						int nodeId = push.getNodesId(j, nodePos);
+						inUpdatesLocks[nodeId].lock();
+						for (int updPos = 0; updPos < push.getUpdatesSize(j); updPos++) {
+							inUpdates[nodeId].insert(push.getUpdates(j, updPos));
+						}
+						inUpdatesLocks[nodeId].unlock();
+					}
+				}
 			}
-                        for (int destId = 0; destId < FANOUT; destId++) {
-                                int nodeId = push.getNodesId(destId);
-                                inUpdatesLocks[nodeId].lock();
-                                for (int updPos = 0; updPos < push.getUpdatesSize(); updPos++) {
-                                        inUpdates[nodeId].insert(push.getUpdates(updPos));
-                                }
-                                inUpdatesLocks[nodeId].unlock();
-                        }
 
                         push.clear();
                 }
