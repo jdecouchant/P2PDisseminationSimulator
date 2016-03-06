@@ -13,6 +13,7 @@ int main(int argc, char* argv[]) {
                 cout << "Example:  ./run 10000 100 8 10 4 1 4 2 80 40" << endl;
 		return 1;                
         }
+//         time ./run 10000 30 7 10 4 1 4 4 80 40
         
         // TODO atoi is deprecated, use strtol, of isstream
         int NUM_NODES = atoi(argv[1]);

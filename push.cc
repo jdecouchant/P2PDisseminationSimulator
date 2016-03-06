@@ -25,9 +25,6 @@ Push::~Push() {
 
 void Push::clear() {
         for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
-		for (int i = 0; i < FANOUT; i++) {
-			nodesPerContentId[contentId][i] = -1;
-		}	
 		updatesPerContentId[contentId].clear();
 	}
 }

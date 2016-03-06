@@ -77,29 +77,33 @@ set<int> Node::selectNodesFromOtherContent(int numNodes, int contentId) {
 void Node::pushUpdatesAsymmetrically(class Push *push, int contentId) {
 
 	set<int> nodesFromContent, nodesFromOtherContent;
-	for (int cId = 0; cId < NUM_CONTENTS; cId++) {
-		// TODO: values are important
-		nodesFromContent = selectNodesFromContent(FANOUT - FANOUT/4, cId);
-		if (cId == selfContentId) {
-			nodesFromOtherContent = selectNodesFromOtherContent(FANOUT/4, cId);
-		} else {
-			nodesFromOtherContent = selectNodesFromContent(FANOUT/4, selfContentId);
-		}
-		int nodePos = 0;
-		set<int>::iterator it;
-		for (it = nodesFromContent.begin(); it != nodesFromContent.end(); it++) {
-			push->insertNodeId(cId, nodePos, *it);
-			nodePos++;
-		}
-		for (it = nodesFromOtherContent.begin(); it != nodesFromOtherContent.end(); it++) {
-			push->insertNodeId(cId, nodePos, *it);
-			nodePos++;
+	set<int>::iterator it;
+	
+	if (contentId == 0) {
+		for (int cId = 0; cId < NUM_CONTENTS; cId++) {
+			// TODO: values are important
+			nodesFromContent = selectNodesFromContent(FANOUT - FANOUT/4, cId);
+			if (cId == selfContentId) {
+				nodesFromOtherContent = selectNodesFromOtherContent(FANOUT/4, cId);
+			} else {
+				nodesFromOtherContent = selectNodesFromContent(FANOUT/4, selfContentId);
+			}
+			int nodePos = 0;
+			for (it = nodesFromContent.begin(); it != nodesFromContent.end(); it++) {
+				push->insertNodeId(cId, nodePos, *it);
+				nodePos++;
+			}
+			for (it = nodesFromOtherContent.begin(); it != nodesFromOtherContent.end(); it++) {
+				push->insertNodeId(cId, nodePos, *it);
+				nodePos++;
+			}
 		}
 	}
 	
 	vector<Update> v;
 	bm[contentId].getNewUpdates(v); // Updates from contentId
 	vector<Update>::iterator iter;
+	int randOtherContentId;
 
 	for (iter=v.begin(); iter!=v.end(); ++iter) {
 		if (iter->getRoundId() >= roundId - RTE) {
@@ -107,10 +111,9 @@ void Node::pushUpdatesAsymmetrically(class Push *push, int contentId) {
 				push->insertUpdate(contentId, *iter);
 			} else {
 				if (rand() % 100 < PROBAITOJ) {
-					int randOtherContentId = contentId;
-					while (randOtherContentId == contentId) {
+					do {
 						randOtherContentId = rand() % NUM_CONTENTS;
-					}
+					} while (randOtherContentId == contentId);
 					push->insertUpdate(randOtherContentId, *iter);
 				}	
 			}

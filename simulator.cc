@@ -161,15 +161,11 @@ void Simulator::peersPushUpdates() {
 }
 
 void *threadEndOfRound(void *threadarg) {
-	struct thread_data *my_data;
-	my_data = (struct thread_data *) threadarg;
-	int tid = my_data->tid;
+	struct thread_data *my_data = (struct thread_data *) threadarg;
 	Node *nodes = my_data->nodes;
 	set<Update> *inUpdates = my_data->inUpdates;
-        int NUM_NODES = my_data->NUM_NODES;
-        int NUM_THREADS = my_data->NUM_THREADS;
 
-	for (int i = tid; i < NUM_NODES; i += NUM_THREADS) {
+	for (int i = my_data->tid; i < my_data->NUM_NODES; i += my_data->NUM_THREADS) {
 		nodes[i].endOfRound();
 		nodes[i].rcvInUpdates(inUpdates[i]);	
 		inUpdates[i].clear();
