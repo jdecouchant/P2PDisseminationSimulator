@@ -17,23 +17,19 @@ class Node {
 	int RTE;
 	int DURATION_PROPOSE;
 	int PROBAITOI;
+	int PROBAITOJ;
 
 	Buffermap *bm;
 	int roundId;
 	int *rcvdUpdatesPerContentId;
-
-        // TODO: should disappear
-	set<int> selectNodesFromSameContent(int numNodes);
-	set<int> selectNodesFromDifferentContent(int numNodes);
         
-        // Should be used instead
         set<int> selectNodesFromContent(int numNodes, int contentId);
         set<int> selectNodesFromOtherContent(int numNodes, int contentId);
 
 public:
 	Node();
 	void init(int id, int FANOUT, int NUM_CONTENTS, int NUM_NODES, int RTE, int DURATION_PROPOSE,
-	  int PROBAITOI);
+	  int PROBAITOI, int PROBAITOJ);
 	~Node();        
 	void incRoundId();
 	void pushUpdates(class Push *push, int contentId);
