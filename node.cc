@@ -22,7 +22,7 @@ void Node::init(int id, int FANOUT, int NUM_CONTENTS, int NUM_NODES,
 	assert(0 <= PROBAITOI && PROBAITOI <= 100);
 	this->PROBAITOJ = PROBAITOJ;
 	assert(0 <= PROBAITOJ && PROBAITOJ <= 100);
-	selfContentId = Simulator::getContentIdFromNodeId(id, NUM_NODES, NUM_CONTENTS);
+	selfContentId = Simulator::getContentIdFromNodeId(id, NUM_CONTENTS);
 	bm = new Buffermap[NUM_CONTENTS];
 	for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
 		bm[contentId].init(DURATION_PROPOSE, RTE, id, contentId);
@@ -40,13 +40,11 @@ void Node::incRoundId() {
 }
 
 set<int> Node::selectNodesFromContent(int numNodes, int contentId) {
-        int numNodesPerContent = NUM_NODES / NUM_CONTENTS;
-        int firstNodeId = contentId * numNodesPerContent;
         set<int> destNodes;
         for (int destId = 0; destId < numNodes; destId++) {
-                int destNode = firstNodeId + (rand() % numNodesPerContent);
+                int destNode = Simulator::getRandNodeIdFromContent(contentId, NUM_NODES, NUM_CONTENTS);
                 while (destNodes.find(destNode) != destNodes.end() || destNode == id) {
-                        destNode = firstNodeId + rand() % numNodesPerContent;
+                        destNode = Simulator::getRandNodeIdFromContent(contentId, NUM_NODES, NUM_CONTENTS);
                 }
                 assert(destNode < NUM_NODES && destNode >= 0);
                 destNodes.insert(destNode);
@@ -55,16 +53,13 @@ set<int> Node::selectNodesFromContent(int numNodes, int contentId) {
 }
 
 set<int> Node::selectNodesFromOtherContent(int numNodes, int contentId) {
-        int numNodesPerContent = NUM_NODES / NUM_CONTENTS;
         set<int> destNodes;
         for (int destId = 0; destId < numNodes; destId++) {
-                int destNode = rand() % NUM_NODES;
-                while (destNodes.find(destNode) != destNodes.end() || destNode == id 
-                  || (contentId * numNodesPerContent <= destNode &&  destNode < (contentId+1) * numNodesPerContent) ) {
-                        destNode = rand() % NUM_NODES;
+                int destNode = Simulator::getRandNodeIdFromOtherContent(contentId, NUM_NODES, NUM_CONTENTS);
+                while (destNodes.find(destNode) != destNodes.end() || destNode == id) {
+                        destNode = Simulator::getRandNodeIdFromOtherContent(contentId, NUM_NODES, NUM_CONTENTS);
                 }
                 assert(destNode < NUM_NODES && destNode >= 0);
-                assert(numNodesPerContent*contentId > destNode || destNode >= numNodesPerContent*(contentId+1));
                 destNodes.insert(destNode);
         }
         return destNodes;

@@ -37,8 +37,6 @@ class Simulator {
         
         class Statistics *stats;
         
-        int getRandNodeIdFromContent(int contentId);
-        
 public: 
 	Simulator(int NUM_NODES, int NUM_ROUNDS, int RTE, int NUM_UPDS_PER_ROUND, 
                   int FANOUT, int DURATION_PROPOSE, int NUM_CONTENTS, int NUM_THREADS,
@@ -46,11 +44,10 @@ public:
  		);
 	~Simulator();
 
-        static int getContentIdFromNodeId(int nodeId, int NUM_NODES, int NUM_CONTENTS);
-        
-	void createThreads();
-
-	void printInUpdates();
+        static int getContentIdFromNodeId(int nodeId, int NUM_CONTENTS);
+        static int getRandNodeIdFromContent(int contentId, int NUM_NODES, int NUM_CONTENTS);
+        static int getRandNodeIdFromOtherContent(int contentId, int NUM_NODES, int NUM_CONTENTS);
+	
 	void sourceSendNewUpdates(int roundId);
 	void peersPushUpdates();
 	void peersEndOfRound(int roundId);

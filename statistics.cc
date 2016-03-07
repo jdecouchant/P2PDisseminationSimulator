@@ -63,7 +63,7 @@ void Statistics::writeProportionsToFile(int roundId) {
         }
 
         for (int nodeId = 0; nodeId < NUM_NODES; nodeId++) {
-                int nodeContentId = Simulator::getContentIdFromNodeId(nodeId, NUM_NODES, NUM_CONTENTS);
+                int nodeContentId = Simulator::getContentIdFromNodeId(nodeId, NUM_CONTENTS);
                 for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
                         avgReceivedPerContentId[nodeContentId][contentId] += 
                         ((double) numRcvdUpdsPerRound[nodeId][contentId]) / ((double) NUM_UPDS_PER_ROUND);

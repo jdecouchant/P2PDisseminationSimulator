@@ -6,27 +6,41 @@
 
 int main(int argc, char* argv[]) {
         
+	int NUM_NODES, NUM_CONTENTS, RTE, NUM_UPDS_PER_ROUND;
+	int FANOUT, DURATION_PROPOSE, NUM_ROUNDS, NUM_THREADS;
+	int PROBAITOI, PROBAITOJ;
+	
         if (argc != 11) {
 		cout << argc << " arguments provided instead of 10!" << endl;
                 cout << "Usage: NUM_NODES NUM_ROUNDS RTE NUM_UPDS_PER_ROUND"
                 << " FANOUT DURATION_PROPOSE NUM_CONTENTS NUM_THREADS PROBAITOI PROBAITOJ" << endl; 
                 cout << "Example:  ./run 10000 100 8 10 4 1 4 2 80 40" << endl;
-		return 1;                
-        }
-//         time ./run 10000 30 7 10 4 1 4 4 80 40
-        
-        // TODO atoi is deprecated, use strtol, of isstream
-        int NUM_NODES = atoi(argv[1]);
-        int NUM_ROUNDS = atoi(argv[2]);
-        int RTE = atoi(argv[3]);
-        int NUM_UPDS_PER_ROUND = atoi(argv[4]);
-        int FANOUT = atoi(argv[5]);
-        int DURATION_PROPOSE = atoi(argv[6]);
-        int NUM_CONTENTS = atoi(argv[7]);
-        int NUM_THREADS = atoi(argv[8]);  
-	int PROBAITOI = atoi(argv[9]);
-	int PROBAITOJ = atoi(argv[10]);
-        
+		cout << "Now running with default values" << endl;             
+		NUM_NODES = 1000;
+		NUM_ROUNDS = 20;
+		RTE = 8;
+		NUM_UPDS_PER_ROUND = 10;
+		FANOUT = 3;
+		DURATION_PROPOSE = 1;
+		NUM_CONTENTS = 2;
+		NUM_THREADS = 2;  
+		PROBAITOI = 80;
+		PROBAITOJ = 40;
+        } else {
+		// TODO atoi is deprecated, use strtol, of isstream
+		NUM_NODES = atoi(argv[1]);
+		NUM_ROUNDS = atoi(argv[2]);
+		RTE = atoi(argv[3]);
+		NUM_UPDS_PER_ROUND = atoi(argv[4]);
+		FANOUT = atoi(argv[5]);
+		DURATION_PROPOSE = atoi(argv[6]);
+		NUM_CONTENTS = atoi(argv[7]);
+		NUM_THREADS = atoi(argv[8]);  
+		PROBAITOI = atoi(argv[9]);
+		PROBAITOJ = atoi(argv[10]);
+	}
+	
+	
         cout << "Running with: NUM_NODES=" << NUM_NODES
         << ", NUM_ROUNDS=" << NUM_ROUNDS
         << ", RTE=" << RTE

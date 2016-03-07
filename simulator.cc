@@ -65,34 +65,26 @@ Simulator::~Simulator() {
         delete[] threads;
 }
 
-void Simulator::printInUpdates() {
-	for (int i = 0; i < NUM_NODES; i++) {
-		cout << "\t" << i << " " << inUpdates[i].size();
-		set<Update>::iterator iter;
-		for (iter = inUpdates[i].begin(); iter!=inUpdates[i].end(); ++iter) {
-			cout << iter->getId() << " ";
-		}		
-		cout << endl;		
+int Simulator::getRandNodeIdFromContent(int contentId, int NUM_NODES, int NUM_CONTENTS) {
+	int nodeId = rand() % NUM_NODES;
+	while (nodeId % NUM_CONTENTS != contentId) {
+		nodeId = rand() % NUM_NODES;
 	}
+	return nodeId; 
 }
 
-int Simulator::getRandNodeIdFromContent(int contentId) {
-        int numNodesPerContent = NUM_NODES / NUM_CONTENTS;
-        int firstNodeId = contentId * numNodesPerContent;
-        return firstNodeId + (rand() % numNodesPerContent);
+int Simulator::getRandNodeIdFromOtherContent(int contentId, int NUM_NODES, int NUM_CONTENTS) {
+	int nodeId = rand() % NUM_NODES;
+	while (nodeId % NUM_CONTENTS == contentId) {
+		nodeId = rand() % NUM_NODES;
+	}
+	return nodeId; 	
 }
 
 // TODO not working correctly if NUM_CONTENTS does not divide NUM_NODES
 // Replace by a modulo
-int Simulator::getContentIdFromNodeId(int nodeId, int NUM_NODES, int NUM_CONTENTS) {
-        int contentId = 0;
-        int curContentMax = (NUM_NODES / NUM_CONTENTS);
-        while (nodeId >= curContentMax) {
-            curContentMax += (NUM_NODES / NUM_CONTENTS);
-            contentId++;
-        }
-        assert(0 <= contentId && contentId < NUM_CONTENTS);
-        return contentId;
+int Simulator::getContentIdFromNodeId(int nodeId, int NUM_CONTENTS) {
+        return nodeId % NUM_CONTENTS;
 }
 
 void Simulator::sourceSendNewUpdates(int roundId) {
@@ -103,9 +95,9 @@ void Simulator::sourceSendNewUpdates(int roundId) {
         for (int contentId = 0; contentId < NUM_CONTENTS; contentId++) {
                 for (int updateId = firstUpdateId; updateId < firstUpdateId + NUM_UPDS_PER_ROUND; updateId++) {
                         for (int destId = 0; destId < FANOUT; destId++) {
-                                destNode = getRandNodeIdFromContent(contentId);
+                                destNode = getRandNodeIdFromContent(contentId, NUM_NODES, NUM_CONTENTS);
                                 while (destNodes.find(destNode) != destNodes.end()) {
-                                        destNode = getRandNodeIdFromContent(contentId);
+                                        destNode = getRandNodeIdFromContent(contentId, NUM_NODES, NUM_CONTENTS);
                                 }
                                 destNodes.insert(destNode);
                                 Update update(roundId, updateId, contentId);
