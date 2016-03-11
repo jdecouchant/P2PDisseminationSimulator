@@ -23,4 +23,4 @@ for rte in range(7,11):
   str(fanout), DURATION_PROPOSE, str(num_contents), NUM_THREADS, str(probaitoi), PROBAITOJ])
 	subprocess.call(['mv', 
 		       'outputRcvd.txt', 
-		       'simulations/out_'+str(rte)+'_'+str(fanout)+'_'+str(probaitoi)+'_'+str(num_contents)+'.txt'])
+		       'simulations/out_'+ "%03d" % probaitoi +'_'+str(rte)+'_'+str(fanout)+'_'+str(num_contents)+'.txt'])

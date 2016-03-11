@@ -22,8 +22,8 @@ def studyfile(filename):
    avgBlack[0] /= i
    avgBlack[1] /= i
    
-   if avgBlack[0] > 98 and avgBlack[1] < 90:
-   	print filename, '\t', "{:6.3f}".format(avgBlack[0]),'% ', "{:6.3f}".format(avgBlack[1]), '% '  
+   if avgBlack[0] > 98 and avgBlack[1] > 0 and avgBlack[1] < 80:
+   	print filename, '\t', "{:6.3f}".format(avgBlack[0]),'%\t', "{:6.3f}".format(avgBlack[1]), '%'  
  
    f.close()
 
