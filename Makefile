@@ -12,6 +12,7 @@ OBJECTS = $(SOURCES:.cc=.o)
 # Main target
 $(EXEC): $(OBJECTS) $(HEADERS)
 	$(CC) $(OBJECTS) $(LD_FLAGS) -o $(EXEC)
+	mkdir -p simulations
 
 # To obtain object files
 %.o: %.cc
