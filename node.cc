@@ -105,7 +105,7 @@ void Node::pushUpdatesAsymmetrically(class Push *push, int contentId) {
 			if (NUM_CONTENTS == 1 || rand() % 100 < PROBAITOI) {
 				push->insertUpdate(contentId, *iter);
 			} else {
-				if (rand() % 100 < PROBAITOJ) {
+				if (rand() % 100 < 100) { //PROBAITOJ) {
 					do {
 						randOtherContentId = rand() % NUM_CONTENTS;
 					} while (randOtherContentId == contentId);
